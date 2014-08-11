@@ -1,4 +1,4 @@
-#define _GUN_SOURCE
+#define _GNU_SOURCE // GNU
 #include <unistd.h>
 #include <sys/syscall.h> /* For SYS_xxx definitions*/
 #include <sys/types.h>
@@ -14,7 +14,7 @@
 
 int thread_func(void *lparam){
     printf("thread id %d \n", (int)syscall(SYS_gettid));
-    printf("thread get param: %d \n", *((int*)lparam));
+    printf("thread get param: %d \n", (int)lparam);
     sleep(1);
     return 0;
 }
@@ -30,16 +30,16 @@ int main(int argc, char** argv){
     void *pstack = (void*)mmap(NULL,
                                STACK_SIZE,
                                PROT_READ | PROT_WRITE,
-                               MAP_PRIVATE | MAP_ANNONYMOUS | MAP_ANON,
+                               MAP_PRIVATE | MAP_ANONYMOUS | MAP_ANON,
                                -1,
                                0);
     if(MAP_FAILED != pstack){
         int ret;
-        printf("strace addr: 0x%X\n", (int)pstack);
+        //printf("strace addr: 0x%X\n", (int)pstack);
 
         ret = clone(thread_func,
-                    (void*)((unsigned char*)pstack + STACK_SIZE), CLONE_VM | CLONE_FS | CLONE_FILES |
-                    CLONE_SIGHAND | SIGCHLD,
+                    (void*)((unsigned char*)pstack + STACK_SIZE), 
+                    CLONE_VM | CLONE_FS | CLONE_FILES | CLONE_SIGHAND | SIGCHLD,
                     (void*) NULL);
         if (-1 != ret){
             pid_t pid = 0;
@@ -51,7 +51,7 @@ int main(int argc, char** argv){
             printf("clone failed %s\n",strerror(errno));
         }
     }else{
-        printf("mmap() failed %s\n",strerr(errno));
+        printf("mmap() failed %s\n",strerror(errno));
     }
 
     return 0;
